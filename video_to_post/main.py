@@ -21,7 +21,7 @@ logging.basicConfig(
 
 DEFAULT_CONFIG = {
     "settings": {
-        "chat_model": "gpt-3.5-turbo",
+        "chat_model": "gpt-3.5-turbo-16k",
         "system_prompt": "You are a helpful assistant.",
         "temperature": "0.7",
     }
@@ -116,6 +116,41 @@ class BlogPostGenerator:
             memory=memory,
         )
 
+    def generate_title_and_summary(self, transcription):
+        """
+        Generates a blog post title and summary based on the given transcription.
+
+        :param transcription: transcribed text from the video
+        :return: title and summary of the blog post
+        """
+        # Use the transcription as the input to the agent
+        response_message = self.agent.run(
+            f"다음은 발표 영상 스크립트이고, 영상에 기반해서 블로그 포스트를 쓰려고 하니, 포스트 제목과 요약문을 2~3개 문단으로 작성해:\n\n{transcription}"
+        )
+        return response_message
+
+    def generate_toc(self):
+        """
+        Generates a table of contents for the blog post.
+
+        :return: table of contents for the blog post
+        """
+        response_message = self.agent.run(
+            "이를 바탕으로, 블로그 포스트의 목차를 작성해\n- 중요도와 정량적 비중도 명시해"
+        )
+        return response_message
+
+    def generate_blog_post(self):
+        """
+        Generates the full blog post.
+
+        :param transcript: transcribed text from the video
+        :return: full blog post in markdown format
+        """
+        response_message = self.agent.run(f"이제 전체 블로그 포스트를 Markdown 형식으로 작성해")
+        # The response should be in markdown format
+        return response_message
+
     def generate(self, transcription):
         """
         Generates a blog post based on the given transcription.
@@ -123,10 +158,16 @@ class BlogPostGenerator:
         :param transcription: transcribed text from the video
         :return: blog post in markdown format
         """
-        # Use the transcription as the input to the agent
-        response_message = self.agent.run(transcription)
-        # The response should be in markdown format
-        return response_message
+        # Generate a title and summary for the blog post
+        title_and_summary = self.generate_title_and_summary(transcription)
+
+        # Generate a table of contents for the blog post
+        toc = self.generate_toc()
+
+        # Generate the full blog post
+        blog_post = self.generate_blog_post()
+
+        return blog_post
 
 
 def main():
