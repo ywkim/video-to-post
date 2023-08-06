@@ -27,8 +27,8 @@ DEFAULT_CONFIG = {
 class AudioExtractor:
     def extract(self, video_file_path):
         video_clip = VideoFileClip(video_file_path)
-        audio_file_path = video_file_path.replace(".mp4", ".wav")
-        video_clip.audio.write_audiofile(audio_file_path)
+        audio_file_path = video_file_path.replace(".mp4", ".m4a")
+        video_clip.audio.write_audiofile(audio_file_path, codec="aac")
         return audio_file_path
 
 
@@ -62,9 +62,8 @@ class BlogPostGenerator:
             temperature=float(config.get("settings", "temperature")),
             openai_api_key=config.get("api", "openai_api_key"),
         )
-        self.tools = load_tools(config.get("settings", "tools").split(","))
         self.agent = initialize_agent(
-            self.tools,
+            [],
             self.chat,
             agent=AgentType.OPENAI_FUNCTIONS,
             verbose=True,
