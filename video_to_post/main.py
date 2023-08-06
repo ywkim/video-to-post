@@ -24,15 +24,15 @@ DEFAULT_CONFIG = {
     "settings": {
         "chat_model": "gpt-3.5-turbo-16k",
         "system_prompt": "You are a helpful assistant.",
-        "temperature": "0.7",
+        "temperature": "0",
     }
 }
 
 # Constants for message prompts
 GENERATE_TITLE_PROMPT = (
-    "내가 발표한 내용을 (한국어) 블로그 포스트로 변환하려고 해. "
-    "다음은 내가 발표한 영상의 스크립트야. 오탈자를 수정한 후, "
-    "포스트의 제목과 요약문을 2~3개 문단으로 작성해줘:\n\n{}"
+    "내가 발표한 내용을 더 많은 독자에게 전달할 수 있게 (한국어) 블로그 포스트로 변환하려고 해. "
+    "다음은 내가 이번에 발표한 영상의 스크립트야. 오탈자를 수정한 후, "
+    "이번 포스트의 제목과 요약문을 2~3개 문단으로 작성해줘:\n\n{}"
 )
 GENERATE_TOC_PROMPT = (
     "이를 바탕으로, 블로그 포스트의 목차를 작성해\n" "- 중요도와 정량적 비중도 명시해\n" "- 필요하면 하위 섹션을 추가해"
