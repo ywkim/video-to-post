@@ -1,6 +1,7 @@
 import argparse
 import configparser
 import logging
+import sys
 
 import openai
 from langchain.agents import AgentType, initialize_agent, load_tools
@@ -14,6 +15,14 @@ logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+DEFAULT_CONFIG = {
+    "settings": {
+        "chat_model": "gpt-3.5-turbo",
+        "system_prompt": "You are a helpful assistant.",
+        "temperature": "0.7",
+    }
+}
+
 
 class AudioExtractor:
     def extract(self, video_file_path):
@@ -24,9 +33,10 @@ class AudioExtractor:
 
 
 class WhisperTranscriber:
-    def __init__(self, language):
+    def __init__(self, language, openai_api_key):
         # language: ISO-639-1 format
         self.language = language
+        openai.api_key = openai_api_key
 
     def transcribe(self, audio_file_name):
         with open(audio_file_name, "rb") as f:
@@ -38,25 +48,8 @@ class WhisperTranscriber:
             return command_text
 
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-
 class BlogPostGenerator:
-    def __init__(self, config_path):
-        config = configparser.ConfigParser()
-        config.read_dict(
-            {
-                "settings": {
-                    "chat_model": "gpt-3.5-turbo",
-                    "system_prompt": "You are a helpful assistant.",
-                    "temperature": "0.7",
-                    "tools": "serpapi",
-                },
-            }
-        )
-        config.read(config_path)
+    def __init__(self, config):
         openai.api_key = config.get("api", "openai_api_key")
         system_prompt = SystemMessage(content=config.get("settings", "system_prompt"))
         agent_kwargs = {
@@ -95,24 +88,36 @@ class BlogPostGenerator:
 def main():
     parser = argparse.ArgumentParser(description="Convert a video into a blog post.")
     parser.add_argument("input", help="Path to the input video file")
-    parser.add_argument("output", help="Path to the output md file")
+    parser.add_argument("-o", "--output", help="Path to the output md file")
+    parser.add_argument(
+        "--config_file", default="config.ini", help="Path to a config file"
+    )
     args = parser.parse_args()
+
+    config = configparser.ConfigParser()
+    config.read_dict(DEFAULT_CONFIG)
+    config.read(args.config_file)
 
     # Extract audio from the video
     audio_extractor = AudioExtractor()
     audio_file = audio_extractor.extract(args.input)
 
     # Transcribe the audio to text
-    whisper_transcriber = WhisperTranscriber("ko")
+    whisper_transcriber = WhisperTranscriber(
+        "ko", openai_api_key=config.get("api", "openai_api_key")
+    )
     transcribed_text = whisper_transcriber.transcribe(audio_file)
 
     # Generate a blog post from the transcribed text
-    blog_post_generator = BlogPostGenerator()
+    blog_post_generator = BlogPostGenerator(config)
     blog_post = blog_post_generator.generate(transcribed_text)
 
     # Write the blog post to the output file
-    with open(args.output, "w") as output_file:
-        output_file.write(blog_post)
+    if args.output:
+        with open(args.output, "w") as output_file:
+            output_file.write(blog_post)
+    else:
+        sys.stdout.write(blog_post)
 
 
 if __name__ == "__main__":
