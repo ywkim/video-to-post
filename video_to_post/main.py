@@ -27,6 +27,13 @@ DEFAULT_CONFIG = {
     }
 }
 
+# Constants for message prompts
+GENERATE_TITLE_PROMPT = (
+    "다음은 발표 영상 스크립트이고, 영상에 기반해서 블로그 포스트를 쓰려고 하니, 포스트 제목과 요약문을 2~3개 문단으로 작성해:\n\n{}"
+)
+GENERATE_TOC_PROMPT = "이를 바탕으로, 블로그 포스트의 목차를 작성해\n- 중요도와 정량적 비중도 명시해"
+GENERATE_BLOG_POST_PROMPT = "이제 전체 블로그 포스트를 Markdown 형식으로 작성해"
+
 
 class AudioExtractor:
     """
@@ -123,10 +130,7 @@ class BlogPostGenerator:
         :param transcription: transcribed text from the video
         :return: title and summary of the blog post
         """
-        # Use the transcription as the input to the agent
-        response_message = self.agent.run(
-            f"다음은 발표 영상 스크립트이고, 영상에 기반해서 블로그 포스트를 쓰려고 하니, 포스트 제목과 요약문을 2~3개 문단으로 작성해:\n\n{transcription}"
-        )
+        response_message = self.agent.run(GENERATE_TITLE_PROMPT.format(transcription))
         return response_message
 
     def generate_toc(self):
@@ -135,19 +139,16 @@ class BlogPostGenerator:
 
         :return: table of contents for the blog post
         """
-        response_message = self.agent.run(
-            "이를 바탕으로, 블로그 포스트의 목차를 작성해\n- 중요도와 정량적 비중도 명시해"
-        )
+        response_message = self.agent.run(GENERATE_TOC_PROMPT)
         return response_message
 
     def generate_blog_post(self):
         """
         Generates the full blog post.
 
-        :param transcript: transcribed text from the video
         :return: full blog post in markdown format
         """
-        response_message = self.agent.run(f"이제 전체 블로그 포스트를 Markdown 형식으로 작성해")
+        response_message = self.agent.run(GENERATE_BLOG_POST_PROMPT)
         # The response should be in markdown format
         return response_message
 
