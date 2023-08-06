@@ -86,18 +86,26 @@ class WhisperTranscriber:
 
 
 class BlogPostGenerator:
-    def __init__(self, config):
-        openai.api_key = config.get("api", "openai_api_key")
-        system_prompt = SystemMessage(content=config.get("settings", "system_prompt"))
+    def __init__(self, chat_model, system_prompt, temperature, openai_api_key):
+        """
+        Initialize a BlogPostGenerator instance.
+
+        :param chat_model: model for chat
+        :param system_prompt: initial prompt for the system
+        :param temperature: controlling randomness of outputs
+        :param openai_api_key: API key of OpenAI
+        """
+        openai.api_key = openai_api_key
+        system_prompt_message = SystemMessage(content=system_prompt)
         agent_kwargs = {
             "extra_prompt_messages": [MessagesPlaceholder(variable_name="memory")],
-            "system_message": system_prompt,
+            "system_message": system_prompt_message,
         }
         memory = ConversationBufferMemory(memory_key="memory", return_messages=True)
         self.chat = ChatOpenAI(
-            model=config.get("settings", "chat_model"),
-            temperature=float(config.get("settings", "temperature")),
-            openai_api_key=config.get("api", "openai_api_key"),
+            model=chat_model,
+            temperature=temperature,
+            openai_api_key=openai_api_key,
         )
         self.agent = initialize_agent(
             [],
@@ -148,7 +156,12 @@ def main():
     transcribed_text = whisper_transcriber.transcribe()
 
     # Generate a blog post from the transcribed text
-    blog_post_generator = BlogPostGenerator(config)
+    blog_post_generator = BlogPostGenerator(
+        chat_model=config.get("settings", "chat_model"),
+        system_prompt=config.get("settings", "system_prompt"),
+        temperature=float(config.get("settings", "temperature")),
+        openai_api_key=config.get("api", "openai_api_key"),
+    )
     blog_post = blog_post_generator.generate(transcribed_text)
 
     # Write the blog post to the output file
