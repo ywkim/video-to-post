@@ -65,7 +65,7 @@ class BlogPostGenerator:
         self.agent = initialize_agent(
             [],
             self.chat,
-            agent=AgentType.OPENAI_FUNCTIONS,
+            agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True,
             agent_kwargs=agent_kwargs,
             memory=memory,
@@ -79,9 +79,9 @@ class BlogPostGenerator:
         :return: blog post in markdown format
         """
         # Use the transcription as the input to the agent
-        response = self.agent.run(transcription)
+        response_message = self.agent.run(transcription)
         # The response should be in markdown format
-        return response["content"]
+        return response_message
 
 
 def main():
