@@ -8,7 +8,7 @@ import logging
 import sys
 
 import openai
-from langchain.agents import AgentType, initialize_agent, load_tools
+from langchain.agents import AgentType, initialize_agent, tool
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import MessagesPlaceholder
@@ -92,6 +92,12 @@ class WhisperTranscriber:
             return command_text
 
 
+@tool
+def self_reflection(message: str) -> int:
+    """Take this action to reflect on your thoughts & actions."""
+    return ""
+
+
 class BlogPostGenerator:
     def __init__(self, chat_model, system_prompt, temperature, openai_api_key):
         """
@@ -115,9 +121,9 @@ class BlogPostGenerator:
             openai_api_key=openai_api_key,
         )
         self.agent = initialize_agent(
-            [],
+            [self_reflection],
             self.chat,
-            agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+            agent=AgentType.OPENAI_FUNCTIONS,
             verbose=True,
             agent_kwargs=agent_kwargs,
             memory=memory,
