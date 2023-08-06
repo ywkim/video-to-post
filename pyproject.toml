@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "video-to-post"
+version = "0.1.0"
+description = "A Python package that converts a video into a blog post."
+authors = ["Youngwook Kim <youngwook.kim@gmail.com>"]
+readme = "README.md"
+packages = [{include = "video_to_post"}]
+
+[tool.poetry.dependencies]
+python = "^3.8.6"
+langchain = "^0.0.253"
+moviepy = "^1.0.3"
+openai = "^0.27.8"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+video-to-post = "video_to_post.main:main"
