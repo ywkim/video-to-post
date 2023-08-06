@@ -25,23 +25,54 @@ DEFAULT_CONFIG = {
 
 
 class AudioExtractor:
-    def extract(self, video_file_path):
-        video_clip = VideoFileClip(video_file_path)
-        audio_file_path = video_file_path.replace(".mp4", ".m4a")
+    """
+    This class handles the extraction of audio from video.
+    """
+    def __init__(self, video_file_path):
+        """
+        Initialize an AudioExtractor instance.
+
+        :param video_file_path: str
+        """
+        self.video_file_path = video_file_path
+
+    def extract(self):
+        """
+        Extracts audio from the video file and saves it to an audio file.
+
+        :return: str
+        """
+        video_clip = VideoFileClip(self.video_file_path)
+        audio_file_path = self.video_file_path.replace(".mp4", ".m4a")
         video_clip.audio.write_audiofile(audio_file_path, codec="aac")
         return audio_file_path
 
 
 class WhisperTranscriber:
-    def __init__(self, language, openai_api_key):
-        # language: ISO-639-1 format
+    """
+    This class handles the transcription of audio to text.
+    """
+    def __init__(self, language, audio_file_name, openai_api_key):
+        """
+        Initialize a WhisperTranscriber instance.
+
+        :param language: str (ISO-639-1 format)
+        :param audio_file_name: str
+        :param openai_api_key: str
+        """
         self.language = language
+        self.audio_file_name = audio_file_name
         openai.api_key = openai_api_key
 
-    def transcribe(self, audio_file_name):
-        with open(audio_file_name, "rb") as f:
+    def transcribe(self):
+        """
+        Transcribes the audio file to text.
+
+        :return: str
+        """
+        with open(self.audio_file_name, "rb") as audio_file:
             transcription = openai.Audio.transcribe(
-                "whisper-1", f, language=self.language
+                "whisper-1", audio_file, language=self.language
             )
             command_text = transcription.get("text")
             logging.info("Transcribed command text: %s", command_text)
