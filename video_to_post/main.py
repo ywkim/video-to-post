@@ -1,3 +1,7 @@
+"""
+This module provides functionality to convert videos into blog posts.
+"""
+
 import argparse
 import configparser
 import logging
@@ -28,6 +32,7 @@ class AudioExtractor:
     """
     This class handles the extraction of audio from video.
     """
+
     def __init__(self, video_file_path):
         """
         Initialize an AudioExtractor instance.
@@ -52,6 +57,7 @@ class WhisperTranscriber:
     """
     This class handles the transcription of audio to text.
     """
+
     def __init__(self, language, audio_file_name, openai_api_key):
         """
         Initialize a WhisperTranscriber instance.
@@ -116,6 +122,9 @@ class BlogPostGenerator:
 
 
 def main():
+    """
+    The main execution point of the script from the command line.
+    """
     parser = argparse.ArgumentParser(description="Convert a video into a blog post.")
     parser.add_argument("input", help="Path to the input video file")
     parser.add_argument("-o", "--output", help="Path to the output md file")
@@ -129,14 +138,14 @@ def main():
     config.read(args.config_file)
 
     # Extract audio from the video
-    audio_extractor = AudioExtractor()
-    audio_file = audio_extractor.extract(args.input)
+    audio_extractor = AudioExtractor(args.input)
+    audio_file_path = audio_extractor.extract()
 
     # Transcribe the audio to text
     whisper_transcriber = WhisperTranscriber(
-        "ko", openai_api_key=config.get("api", "openai_api_key")
+        "ko", audio_file_path, config.get("api", "openai_api_key")
     )
-    transcribed_text = whisper_transcriber.transcribe(audio_file)
+    transcribed_text = whisper_transcriber.transcribe()
 
     # Generate a blog post from the transcribed text
     blog_post_generator = BlogPostGenerator(config)
@@ -144,7 +153,7 @@ def main():
 
     # Write the blog post to the output file
     if args.output:
-        with open(args.output, "w") as output_file:
+        with open(args.output, "w", encoding="utf-8") as output_file:
             output_file.write(blog_post)
     else:
         sys.stdout.write(blog_post)
