@@ -21,7 +21,7 @@ poetry add video-to-post
 이 패키지는 커맨드라인에서 다음과 같이 사용할 수 있습니다.
 
 ```bash
-video-to-post /path/to/video.mp4 /path/to/output.md
+video-to-post /path/to/video.mp4 -o /path/to/output.md
 ```
 
 이 명령은 `video.mp4` 파일을 처리하고, 결과를 `output.md` 파일로 저장합니다.
