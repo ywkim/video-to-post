@@ -14,6 +14,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
 from moviepy.editor import VideoFileClip
+from pydub import AudioSegment
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -34,9 +35,7 @@ GENERATE_TITLE_PROMPT = (
     "포스트의 제목과 요약문을 2~3개 문단으로 작성해줘:\n\n{}"
 )
 GENERATE_TOC_PROMPT = (
-    "이를 바탕으로, 블로그 포스트의 목차를 작성해\n"
-    "- 중요도와 정량적 비중도 명시해\n"
-    "- 필요하면 하위 섹션을 추가해"
+    "이를 바탕으로, 블로그 포스트의 목차를 작성해\n" "- 중요도와 정량적 비중도 명시해\n" "- 필요하면 하위 섹션을 추가해"
 )
 GENERATE_BLOG_POST_PROMPT = (
     "이제 전체 블로그 포스트를 Markdown 형식으로 작성해\n"
@@ -52,13 +51,14 @@ class AudioExtractor:
     This class handles the extraction of audio from video.
     """
 
-    def __init__(self, video_file_path):
+    def __init__(self, video_file_path, target_sample_rate=22050):
         """
         Initialize an AudioExtractor instance.
 
         :param video_file_path: str
         """
         self.video_file_path = video_file_path
+        self.target_sample_rate = target_sample_rate
 
     def extract(self):
         """
@@ -67,9 +67,23 @@ class AudioExtractor:
         :return: str
         """
         video_clip = VideoFileClip(self.video_file_path)
-        audio_file_path = self.video_file_path.replace(".mp4", ".m4a")
-        video_clip.audio.write_audiofile(audio_file_path, codec="aac")
-        return audio_file_path
+        audio_file_path = self.video_file_path.replace(".mp4", ".wav")
+        audio_clip = video_clip.audio
+        audio_clip.write_audiofile(audio_file_path)
+
+        # Convert to pydub's AudioSegment
+        audio_segment = AudioSegment.from_wav(audio_file_path)
+
+        # Change sample rate and convert to mono
+        audio_segment = audio_segment.set_frame_rate(
+            self.target_sample_rate
+        ).set_channels(1)
+
+        # Export as mp3
+        mp3_file_path = audio_file_path.replace(".wav", ".mp3")
+        audio_segment.export(mp3_file_path, format="mp3")
+
+        return mp3_file_path
 
 
 class WhisperTranscriber:
